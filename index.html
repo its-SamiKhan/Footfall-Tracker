@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Footfall Tracker - Team Vigilantes</title>
+    <style>
+        :root {
+            --primary-color: #00ff88;
+            --secondary-color: #1a1a1a;
+            --accent-color: #00ccff;
+            --text-color: #ffffff;
+            --error-color: #ff3366;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #0a0a0a;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 255, 136, 0.2);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            border: 2px solid var(--primary-color);
+            background-color: rgba(26, 26, 26, 0.8);
+            color: var(--text-color);
+            border-radius: 5px;
+            width: 60%;
+            font-family: 'Courier New', monospace;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .control-button {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            border: none;
+            color: var(--secondary-color);
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            min-width: 150px;
+        }
+
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .control-button:disabled {
+            background: #333;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.5;
+        }
+
+        .output-container {
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--primary-color);
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .output-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        pre {
+            margin: 0;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            overflow-x: auto;
+            color: var(--primary-color);
+            font-family: 'Courier New', monospace;
+        }
+
+        .error {
+            color: var(--error-color);
+            border-color: var(--error-color);
+        }
+
+        .status {
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--primary-color);
+        }
+
+        .heatmap-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .heatmap-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 2px solid var(--accent-color);
+        }
+
+        /* Matrix rain effect */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.9));
+            z-index: -1;
+        }
+
+        /* Glowing effect */
+        .glow {
+            text-shadow: 0 0 10px var(--primary-color);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            input[type="text"] {
+                width: 100%;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .control-button {
+                width: 100%;
+            }
+        }
+
+        .title-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 255, 136, 0.2);
+            margin-bottom: 10px;
+        }
+
+        .team-name {
+            color: var(--accent-color);
+            font-size: 1.2em;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 10px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px var(--accent-color),
+                           0 0 10px var(--accent-color),
+                           0 0 15px var(--accent-color);
+            }
+            to {
+                text-shadow: 0 0 10px var(--accent-color),
+                           0 0 20px var(--accent-color),
+                           0 0 30px var(--accent-color);
+            }
+        }
+
+        .footfall-graph-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .footfall-graph-container h2 {
+            color: var(--primary-color);
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .footfall-graph-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 2px solid var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="matrix-bg"></div>
+    <div class="container">
+        <div class="title-container">
+            <h1 class="glow">Footfall Tracker</h1>
+            <div class="team-name">Team Vigilantes</div>
+        </div>
+        
+        <div class="input-group">
+            <input type="text" id="videoUrl" placeholder="Enter video stream URL or type 'webcam' for camera">
+            <div class="button-group">
+                <button class="control-button" onclick="startProcessing()" id="startBtn">Start Processing</button>
+                <button class="control-button" onclick="stopProcessing()" id="stopBtn">Stop Processing</button>
+            </div>
+        </div>
+
+        <div class="status" id="status">Ready to process</div>
+
+        <div class="output-container">
+            <pre id="output">Waiting for data...</pre>
+        </div>
+
+        <div class="heatmap-container" id="heatmapContainer"></div>
+        <div class="heatmap-container" id="lastframeContainer"></div>
+
+        <div class="footfall-graph-container">
+            <h2>Footfall Graph</h2>
+            <div class="heatmap-container" id="graphContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let processingActive = false;
+        let statusCheckInterval = null;
+        let controller = null;
+
+        async function startProcessing() {
+            const videoUrl = document.getElementById('videoUrl').value;
+            if (!videoUrl) {
+                displayResults({ error: "Video URL is required" });
+                return;
+            }
+
+            try {
+                // Disable start button and enable stop button
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                
+                processingActive = true;
+                controller = new AbortController();
+
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        video_stream_url: videoUrl === 'webcam' ? '0' : videoUrl
+                    }),
+                    signal: controller.signal
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+
+                // Start polling for status updates
+                statusCheckInterval = setInterval(checkProcessingStatus, 1000);
+
+            } catch (error) {
+                console.error('Error:', error);
+                displayResults({ error: error.message });
+                resetUI();
+            }
+        }
+
+        async function stopProcessing() {
+            try {
+                document.getElementById('stopBtn').disabled = true;
+                
+                const response = await fetch('/stop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                displayResults({ error: error.message });
+            } finally {
+                resetUI();
+            }
+        }
+
+        function resetUI() {
+            processingActive = false;
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                statusCheckInterval = null;
+            }
+            if (controller) {
+                controller.abort();
+                controller = null;
+            }
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+        }
+
+        async function checkProcessingStatus() {
+            if (!processingActive) return;
+
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+
+                displayResults(data);
+
+
+                // Check if processing is complete
+                if (data.processing_complete) {
+                    resetUI();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                displayResults({ error: error.message });
+                resetUI();
+            }
+        }
+
+        function displayResults(data) {
+            const outputElement = document.getElementById('output');
+            const heatmapContainer = document.getElementById('heatmapContainer');
+            
+            // Update status
+            document.getElementById('status').textContent = data.error ? 
+                'Error: ' + data.error : 
+                'Processing active...';
+
+            // Display JSON data
+            outputElement.textContent = JSON.stringify(data, null, 2);
+            
+            // Always display the latest heatmap
+            const timestamp = new Date().getTime(); // Add timestamp to prevent caching
+            const img = new Image();
+            img.onload = function() {
+                heatmapContainer.innerHTML = ''; // Clear container
+                heatmapContainer.appendChild(img);
+            };
+            img.onerror = function() {
+                console.error('Failed to load heatmap image');
+                heatmapContainer.innerHTML = '<p style="color: var(--error-color);">Updating the Heatmap...</p>';
+            };
+            img.src = `/static/heatmaps/latest_heatmap.png?t=${timestamp}`;
+            img.alt = "Latest Heatmap";
+            
+            const img1 = new Image();
+            img1.onload = function() {
+                lastframeContainer.innerHTML = ''; // Clear container
+                lastframeContainer.appendChild(img1);
+            };
+            img.onerror = function() {
+                console.error('Failed to load last-frame image');
+                heatmapContainer.innerHTML = '<p style="color: var(--error-color);">Updating the last-frame...</p>';
+            };
+            img1.src = `/static/heatmaps/lastframe.png?t=${timestamp}`;
+            img1.alt = "Lastframe";
+            const img2 = new Image();
+            img2.onload = function() {
+                graphContainer.innerHTML = ''; // Clear container
+                graphContainer.appendChild(img2);
+            };
+            img2.onerror = function() {
+                console.error('Failed to load last-frame image');
+                heatmapContainer.innerHTML = '<p style="color: var(--error-color);">Updating the last-frame...</p>';
+            };
+            img2.src = `/static/footfall_graph.png?t=${timestamp}`;
+            img2.alt = "graph";
+        }
+
+        // Initialize UI
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('stopBtn').disabled = true;
+        });
+    </script>
+</body>
+</html>
